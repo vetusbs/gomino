@@ -1,18 +1,23 @@
 package main
 
 import (
-	"domino/domino/controller"
-	"domino/domino/models"
 	"fmt"
+	"gomino/models"
 )
 
 func main() {
-	fmt.Println("Hello world")
-
 	game := models.InitGame(3)
 
-	fmt.Println(game)
-
 	game.PrintGameState()
-	controller.Ping()
+
+	for {
+		var i int
+		fmt.Scan(&i)
+		fmt.Println("card ", i)
+		game.Play(i)
+		if i < 0 {
+			break
+		}
+		game.PrintGameState()
+	}
 }

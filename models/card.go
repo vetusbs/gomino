@@ -4,10 +4,6 @@ import (
 	"fmt"
 )
 
-func init() {
-	fmt.Println("init in sandbox.go")
-}
-
 // Card is bla
 type Card struct {
 	left      int
@@ -17,13 +13,16 @@ type Card struct {
 	reverse   bool
 }
 
+func (c *Card) toString() string {
+	return fmt.Sprintf("%d\u00B7%d", c.left, c.right)
+}
+
 func (c Card) Println() {
 	if c.reverse {
-		fmt.Println(c.left, "·", c.right)
+		fmt.Printf("%d\u00B7%d ", c.left, c.right)
 	} else {
-		fmt.Println(c.right, "·", c.left)
+		fmt.Printf("%d\u00B7%d ", c.right, c.left)
 	}
-
 }
 
 func (c Card) isDouble() bool {
