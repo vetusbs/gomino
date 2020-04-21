@@ -17,17 +17,17 @@ type Card struct {
 
 func (c *Card) toString() string {
 	if c.reverse == false {
-		return fmt.Sprintf("%d\u00B7%dN", c.left, c.right)
+		return fmt.Sprintf("%d\u00B7%d", c.left, c.right)
 	} else {
-		return fmt.Sprintf("%d\u00B7%dR", c.right, c.left)
+		return fmt.Sprintf("%d\u00B7%d", c.right, c.left)
 	}
 }
 
 func (c Card) Println() {
 	if c.reverse == false {
-		fmt.Printf("%d\u00B7%dN ", c.left, c.right)
+		fmt.Printf("%d\u00B7%d ", c.left, c.right)
 	} else {
-		fmt.Printf("%d\u00B7%dR ", c.right, c.left)
+		fmt.Printf("%d\u00B7%d ", c.right, c.left)
 	}
 }
 

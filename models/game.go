@@ -8,9 +8,7 @@ import (
 
 // Game is bla
 type Game struct {
-	head          *Card
-	tail          *Card
-	sink          []*Card
+	board         *Board
 	players       []*Player
 	currentPlayer int
 	winner        *Player
@@ -21,14 +19,12 @@ func (game *Game) GetCurrentPlayer() *Player {
 }
 
 func (game *Game) validatePlayHead(card *Card) bool {
-	if game.head.reverse == true {
-		fmt.Println("valid for reverse")
-		if game.head.right == card.left || game.head.right == card.right {
+	if game.board.head.reverse == true {
+		if game.board.head.right == card.left || game.board.head.right == card.right {
 			return true
 		}
 	} else {
-		fmt.Println("valid for not reverse")
-		if game.head.left == card.left || game.head.left == card.right {
+		if game.board.head.left == card.left || game.board.head.left == card.right {
 			return true
 		}
 	}
@@ -36,14 +32,12 @@ func (game *Game) validatePlayHead(card *Card) bool {
 }
 
 func (game *Game) validatePlayTail(card *Card) bool {
-	if game.tail.reverse == true {
-		fmt.Println("valid for reverse")
-		if game.tail.left == card.left || game.tail.left == card.right {
+	if game.board.tail.reverse == true {
+		if game.board.tail.left == card.left || game.board.tail.left == card.right {
 			return true
 		}
 	} else {
-		fmt.Println("valid for not reverse")
-		if game.tail.right == card.left || game.tail.right == card.right {
+		if game.board.tail.right == card.left || game.board.tail.right == card.right {
 			return true
 		}
 	}
@@ -51,23 +45,23 @@ func (game *Game) validatePlayTail(card *Card) bool {
 }
 
 func (game *Game) playCard(card *Card) bool {
-	if game.head == nil {
-		game.head = card
-		game.tail = card
+	if game.board.head == nil {
+		game.board.head = card
+		game.board.tail = card
 	} else if game.validatePlayHead(card) {
-		if game.tail.getFreeNumber() == card.left {
+		if game.board.tail.getFreeNumber() == card.left {
 			card.reverse = true
 		}
-		game.head.prevCard = card
-		card.nextCard = game.head
-		game.head = card
+		game.board.head.prevCard = card
+		card.nextCard = game.board.head
+		game.board.head = card
 	} else if game.validatePlayTail(card) {
-		if game.tail.getFreeNumber() == card.right {
+		if game.board.tail.getFreeNumber() == card.right {
 			card.reverse = true
 		}
-		game.tail.nextCard = card
-		card.prevCard = game.tail
-		game.tail = card
+		game.board.tail.nextCard = card
+		card.prevCard = game.board.tail
+		game.board.tail = card
 	} else {
 		game.currentPlayer = (game.currentPlayer + 1) % len(game.players)
 		return false
@@ -115,25 +109,22 @@ func InitGame(numberOfPlayers int) Game {
 		}
 	}
 
-	return Game{sink: gameCards[numberOfPlayers*nCardsPerUser : 28], players: players, currentPlayer: 0}
+	return Game{
+		players:       players,
+		currentPlayer: 0,
+		board: &Board{
+			sink: gameCards[numberOfPlayers*nCardsPerUser : 28],
+		},
+	}
 }
 
-func (g *Game) PrintGameState() {
+func (game *Game) PrintGameState() {
 	fmt.Printf("\nGAME STATUS\nSINK\n")
 
-	for _, card := range g.sink {
-		fmt.Printf("%v ", card.toString())
-	}
+	game.board.PrintBoard()
 
-	fmt.Printf("\nBOARD\n")
-	var actual *Card
-	actual = g.head
-	for actual != nil {
-		actual.Println()
-		actual = actual.nextCard
-	}
 	fmt.Printf("\nPLAYERS\n")
-	for _, p := range g.players {
+	for _, p := range game.players {
 		p.Println()
 	}
 }
