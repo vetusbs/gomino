@@ -10,16 +10,30 @@ type Player struct {
 	cards []*Card
 }
 
-func (p Player) Println() {
-	fmt.Print(p.name, " -- ", len(p.cards), " -- ")
-	for i := 0; i < len(p.cards); i++ {
-		p.cards[i].Println()
+// Println prints player
+func (player Player) Println() {
+	fmt.Print(player.name, " -- ", len(player.cards), " -- ")
+	for i := 0; i < len(player.cards); i++ {
+		player.cards[i].Println()
 	}
 	fmt.Println()
 }
 
-func (player *Player) play(position int) {
-	player.cards = remove(player.cards, position)
+func (player *Player) Play(position int, game *Game) bool {
+	card := player.cards[position]
+	if game.playCard(card) {
+		player.cards = remove(player.cards, position)
+		return true
+	} else {
+		fmt.Printf("\nyou cannot play this card\n")
+		return false
+	}
+}
+
+func (player *Player) Pick(position int, game *Game) {
+	card := game.sink[position]
+	game.sink = remove(game.sink, position)
+	player.cards = append(player.cards, card)
 }
 
 func remove(slice []*Card, i int) []*Card {

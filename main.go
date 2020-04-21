@@ -9,12 +9,15 @@ func main() {
 	game := models.InitGame(3)
 
 	game.PrintGameState()
-
+	var currentPlayer *models.Player
 	for {
+		currentPlayer = game.GetCurrentPlayer()
 		var i int
 		fmt.Scan(&i)
 		fmt.Println("card ", i)
-		game.Play(i)
+		if currentPlayer.Play(i, &game) == false {
+			currentPlayer.Pick(0, &game)
+		}
 		if i < 0 {
 			break
 		}
