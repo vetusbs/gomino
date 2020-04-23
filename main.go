@@ -10,7 +10,7 @@ func main() {
 
 	game.PrintGameState()
 	var currentPlayer *models.Player
-	for {
+	for game.IsFinished() == false {
 		currentPlayer = game.GetCurrentPlayer()
 		var i int
 		fmt.Printf("%v: ", currentPlayer.GetName())

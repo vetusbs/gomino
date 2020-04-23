@@ -37,6 +37,14 @@ func (player *Player) AutoPlay(game *Game) bool {
 	return false
 }
 
+func (player *Player) getSumOfPoints() int {
+	sum := 0
+	for _, value := range player.points {
+		sum = sum + value
+	}
+	return sum
+}
+
 func (player *Player) pick(position int, game *Game) {
 	card := game.board.sink[position]
 	game.board.sink = remove(game.board.sink, position)

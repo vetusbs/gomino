@@ -13,6 +13,15 @@ type Game struct {
 	currentPlayer int
 }
 
+func (game *Game) IsFinished() bool {
+	for _, p := range game.players {
+		if p.getSumOfPoints() > 10 {
+			return true
+		}
+	}
+	return false
+}
+
 func (game *Game) GetCurrentPlayer() *Player {
 	return game.players[game.currentPlayer]
 }
@@ -65,9 +74,8 @@ func (game *Game) Pick(player *Player) bool {
 			player.pick(0, game)
 			return true
 		}
-	} else {
-		game.nextPlayer()
 	}
+	game.nextPlayer()
 	return false
 }
 
