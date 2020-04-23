@@ -6,74 +6,79 @@ import (
 	"time"
 )
 
-// Game is bla
+// Game
 type Game struct {
 	board         *Board
 	players       []*Player
 	currentPlayer int
-	winner        *Player
 }
 
 func (game *Game) GetCurrentPlayer() *Player {
 	return game.players[game.currentPlayer]
 }
 
-func (game *Game) validatePlayHead(card *Card) bool {
-	if game.board.head.reverse == true {
-		if game.board.head.right == card.left || game.board.head.right == card.right {
-			return true
-		}
-	} else {
-		if game.board.head.left == card.left || game.board.head.left == card.right {
-			return true
-		}
-	}
-	return false
-}
-
-func (game *Game) validatePlayTail(card *Card) bool {
-	if game.board.tail.reverse == true {
-		if game.board.tail.left == card.left || game.board.tail.left == card.right {
-			return true
-		}
-	} else {
-		if game.board.tail.right == card.left || game.board.tail.right == card.right {
-			return true
-		}
-	}
-	return false
-}
-
 func (game *Game) playCard(card *Card) bool {
-	if game.board.head == nil {
-		game.board.head = card
-		game.board.tail = card
-	} else if game.validatePlayHead(card) {
-		if game.board.tail.getFreeNumber() == card.left {
-			card.reverse = true
+
+	result := game.board.playCard(card)
+	if result == true {
+		if len(game.players[game.currentPlayer].cards) == 0 {
+			fmt.Printf("\n*****************************************")
+			fmt.Printf("\n***** GAME IS OVER %v WINS ***", game.players[game.currentPlayer].name)
+			fmt.Printf("\n*****************************************\n")
+			game.addPoints()
 		}
-		game.board.head.prevCard = card
-		card.nextCard = game.board.head
-		game.board.head = card
-	} else if game.validatePlayTail(card) {
-		if game.board.tail.getFreeNumber() == card.right {
-			card.reverse = true
-		}
-		game.board.tail.nextCard = card
-		card.prevCard = game.board.tail
-		game.board.tail = card
-	} else {
-		game.currentPlayer = (game.currentPlayer + 1) % len(game.players)
+		game.nextPlayer()
+	}
+
+	return result
+}
+
+func (game *Game) nextPlayer() {
+	game.currentPlayer = (game.currentPlayer + 1) % len(game.players)
+}
+
+func (game *Game) PlayCardPublic(player *Player, cardPosition int) bool {
+
+	if player != game.players[game.currentPlayer] {
 		return false
 	}
-	if len(game.players[game.currentPlayer].cards) == 0 {
-		fmt.Printf("\n*****************************************")
-		fmt.Printf("\n***** GAME IS OVER %v WINS ***", game.players[game.currentPlayer].name)
-		fmt.Printf("\n*****************************************\n")
-	}
-	game.currentPlayer = (game.currentPlayer + 1) % len(game.players)
 
-	return true
+	card := player.cards[cardPosition]
+	result := game.board.playCard(card)
+	if result == true {
+		player.play(cardPosition)
+		if len(game.players[game.currentPlayer].cards) == 0 {
+			fmt.Printf("\n*****************************************")
+			fmt.Printf("\n***** GAME IS OVER %v WINS ***", game.players[game.currentPlayer].name)
+			fmt.Printf("\n*****************************************\n")
+			game.addPoints()
+		}
+		game.currentPlayer = (game.currentPlayer + 1) % len(game.players)
+	}
+
+	return result
+}
+
+func (game *Game) Pick(player *Player) bool {
+	if game.players[game.currentPlayer] == player {
+		if len(game.board.sink) > 0 {
+			player.pick(0, game)
+			return true
+		}
+	} else {
+		game.nextPlayer()
+	}
+	return false
+}
+
+func (game *Game) addPoints() {
+	for _, player := range game.players {
+		if player == game.players[game.currentPlayer] {
+			player.points = append(player.points, 0)
+		} else {
+			player.points = append(player.points, player.countPoints())
+		}
+	}
 }
 
 // InitGame Creates an empty game.
@@ -108,6 +113,10 @@ func InitGame(numberOfPlayers int) Game {
 			cards: playerCards,
 		}
 	}
+
+	//cardtest := game.board.sink[0]
+	//game.board.sink = remove(game.board.sink, 0)
+	//game.players[1].cards = append(game.players[1].cards, cardtest)
 
 	return Game{
 		players:       players,

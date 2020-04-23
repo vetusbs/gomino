@@ -17,18 +17,22 @@ type Card struct {
 
 func (c *Card) toString() string {
 	if c.reverse == false {
-		return fmt.Sprintf("%d\u00B7%d", c.left, c.right)
+		return fmt.Sprintf("[%d|%d]", c.left, c.right)
 	} else {
-		return fmt.Sprintf("%d\u00B7%d", c.right, c.left)
+		return fmt.Sprintf("[%d|%d]", c.right, c.left)
 	}
 }
 
 func (c Card) Println() {
 	if c.reverse == false {
-		fmt.Printf("%d\u00B7%d ", c.left, c.right)
+		fmt.Printf("[%d|%d] ", c.left, c.right)
 	} else {
-		fmt.Printf("%d\u00B7%d ", c.right, c.left)
+		fmt.Printf("[%d|%d] ", c.right, c.left)
 	}
+}
+
+func (c Card) getPoints() int {
+	return c.left + c.right
 }
 
 func (c Card) isDouble() bool {
