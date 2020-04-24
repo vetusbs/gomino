@@ -13,14 +13,17 @@ func main() {
 	for game.IsFinished() == false {
 		currentPlayer = game.GetCurrentPlayer()
 		var i int
+		var head bool
 		fmt.Printf("%v: ", currentPlayer.GetName())
 		fmt.Scan(&i)
-		fmt.Printf("%v %v\n", currentPlayer.GetName(), i)
 
 		if i == 33 {
 			currentPlayer.AutoPlay(&game)
 		} else {
-			if game.PlayCardPublic(currentPlayer, i) == false {
+			fmt.Scan(&head)
+			fmt.Printf("%v %v %v\n", currentPlayer.GetName(), i, head)
+			if err := game.PlayCardPublic(currentPlayer, i, head); err != nil {
+				fmt.Println(err)
 				game.Pick(currentPlayer)
 			}
 		}

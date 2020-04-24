@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"time"
@@ -15,7 +16,7 @@ type Game struct {
 
 func (game *Game) IsFinished() bool {
 	for _, p := range game.players {
-		if p.getSumOfPoints() > 10 {
+		if p.getSumOfPoints() > 100 {
 			return true
 		}
 	}
@@ -26,57 +27,47 @@ func (game *Game) GetCurrentPlayer() *Player {
 	return game.players[game.currentPlayer]
 }
 
-func (game *Game) playCard(card *Card) bool {
-
-	result := game.board.playCard(card)
-	if result == true {
-		if len(game.players[game.currentPlayer].cards) == 0 {
-			fmt.Printf("\n*****************************************")
-			fmt.Printf("\n***** GAME IS OVER %v WINS ***", game.players[game.currentPlayer].name)
-			fmt.Printf("\n*****************************************\n")
-			game.addPoints()
-		}
-		game.nextPlayer()
-	}
-
-	return result
-}
-
 func (game *Game) nextPlayer() {
 	game.currentPlayer = (game.currentPlayer + 1) % len(game.players)
 }
 
-func (game *Game) PlayCardPublic(player *Player, cardPosition int) bool {
+func (game *Game) PlayCardPublic(player *Player, cardPosition int, head bool) error {
 
 	if player != game.players[game.currentPlayer] {
-		return false
+		return errors.New("this is not the current player")
+	}
+
+	if cardPosition >= len(player.cards) {
+		return errors.New("this is not a valid position")
 	}
 
 	card := player.cards[cardPosition]
-	result := game.board.playCard(card)
-	if result == true {
+	result := game.board.playCard(card, head)
+	if result == nil {
 		player.play(cardPosition)
 		if len(game.players[game.currentPlayer].cards) == 0 {
 			fmt.Printf("\n*****************************************")
 			fmt.Printf("\n***** GAME IS OVER %v WINS ***", game.players[game.currentPlayer].name)
 			fmt.Printf("\n*****************************************\n")
 			game.addPoints()
+			game.restartGame()
+		} else {
+			game.nextPlayer()
 		}
-		game.currentPlayer = (game.currentPlayer + 1) % len(game.players)
+		return nil
 	}
-
 	return result
 }
 
-func (game *Game) Pick(player *Player) bool {
+func (game *Game) Pick(player *Player) error {
 	if game.players[game.currentPlayer] == player {
 		if len(game.board.sink) > 0 {
 			player.pick(0, game)
-			return true
+			return nil
 		}
 	}
 	game.nextPlayer()
-	return false
+	return errors.New("There are no cards to pick")
 }
 
 func (game *Game) addPoints() {
@@ -89,30 +80,24 @@ func (game *Game) addPoints() {
 	}
 }
 
+func (game *Game) restartGame() {
+	gameCards := createCards()
+	nCardsPerUser := cardsPerUser(len(game.players))
+
+	for i := 0; i < len(game.players); i++ {
+		playerCards := gameCards[i*nCardsPerUser : i*nCardsPerUser+nCardsPerUser]
+		game.players[i].cards = playerCards
+	}
+	game.board = &Board{
+		sink: gameCards[len(game.players)*nCardsPerUser : 28],
+	}
+}
+
 // InitGame Creates an empty game.
 func InitGame(numberOfPlayers int) Game {
-	gameCards := make([]*Card, 28)
-	total := 0
-	for i := 0; i < 7; i++ {
-		for j := i; j < 7; j++ {
-			gameCards[total] = &Card{left: i, right: j}
-			total++
-		}
-	}
-
+	gameCards := createCards()
 	players := make([]*Player, numberOfPlayers)
-
-	rand.Seed(time.Now().UnixNano())
-	rand.Shuffle(len(gameCards), func(i, j int) { gameCards[i], gameCards[j] = gameCards[j], gameCards[i] })
-
-	var nCardsPerUser int
-	if numberOfPlayers == 2 {
-		nCardsPerUser = 14
-	} else if numberOfPlayers == 3 {
-		nCardsPerUser = 7
-	} else if numberOfPlayers == 4 {
-		nCardsPerUser = 7
-	}
+	nCardsPerUser := cardsPerUser(numberOfPlayers)
 
 	for i := 0; i < numberOfPlayers; i++ {
 		playerCards := gameCards[i*nCardsPerUser : i*nCardsPerUser+nCardsPerUser]
@@ -133,6 +118,32 @@ func InitGame(numberOfPlayers int) Game {
 			sink: gameCards[numberOfPlayers*nCardsPerUser : 28],
 		},
 	}
+}
+
+func createCards() []*Card {
+	gameCards := make([]*Card, 28)
+	total := 0
+	for i := 0; i < 7; i++ {
+		for j := i; j < 7; j++ {
+			gameCards[total] = &Card{left: i, right: j}
+			total++
+		}
+	}
+	rand.Seed(time.Now().UnixNano())
+	rand.Shuffle(len(gameCards), func(i, j int) { gameCards[i], gameCards[j] = gameCards[j], gameCards[i] })
+
+	return gameCards
+}
+
+func cardsPerUser(numberOfPlayers int) int {
+	if numberOfPlayers == 2 {
+		return 7
+	} else if numberOfPlayers == 3 {
+		return 7
+	} else if numberOfPlayers == 4 {
+		return 7
+	}
+	return 5
 }
 
 func (game *Game) PrintGameState() {

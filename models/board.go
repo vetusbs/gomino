@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -25,23 +26,32 @@ func (g *Board) PrintBoard() {
 	}
 }
 
-func (board *Board) playCard(card *Card) bool {
+// playCard is adding the actual card into the board, and make sure that
+// the movemnt is allowed.
+// params:
+// card : the actual card to put into the board
+// head : true if the card goes to the head. false if it goes to the tail.
+func (board *Board) playCard(card *Card, head bool) error {
 	// TODO: fix the reverse for the first card, when left and right are nil.
 	if board.head == nil {
 		board.head = card
 		board.tail = card
-	} else if board.validatePlayHead(card) {
+	} else if head == true && board.validatePlayHead(card) {
 		fmt.Printf("validated for head %v --- %v \n", card, board.head)
-		if board.head.getFreeNumber() == card.left {
+		if board.head.isInitialCard() && card.right != board.head.left {
+			card.reverse = true
+		} else if board.head.getFreeNumber() == card.left {
 			fmt.Println("set reverse to true")
 			card.reverse = true
 		}
 		board.head.prevCard = card
 		card.nextCard = board.head
 		board.head = card
-	} else if board.validatePlayTail(card) {
+	} else if head == false && board.validatePlayTail(card) {
 		fmt.Println("validated for tail")
-		if board.tail.getFreeNumber() == card.right {
+		if board.head.isInitialCard() && card.left != board.head.right {
+			card.reverse = true
+		} else if board.tail.getFreeNumber() == card.right {
 			fmt.Println("set reverse to true")
 			card.reverse = true
 		}
@@ -49,10 +59,10 @@ func (board *Board) playCard(card *Card) bool {
 		card.prevCard = board.tail
 		board.tail = card
 	} else {
-		return false
+		return errors.New("You cannot put this card")
 	}
 
-	return true
+	return nil
 }
 
 func (board *Board) validatePlayHead(card *Card) bool {

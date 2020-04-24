@@ -39,6 +39,10 @@ func (c Card) isDouble() bool {
 	return c.left == c.right
 }
 
+func (c Card) isInitialCard() bool {
+	return c.prevCard == nil && c.nextCard == nil
+}
+
 func (c Card) getFreeNumber() int {
 	if c.reverse == false {
 		if c.nextCard == nil {

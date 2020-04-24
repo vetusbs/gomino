@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -9,6 +10,14 @@ type Player struct {
 	name   string
 	cards  []*Card
 	points []int
+}
+
+func NewPlayer(name string, cards []*Card, points []int) Player {
+	return Player{
+		name:   name,
+		cards:  cards,
+		points: points,
+	}
 }
 
 func (player *Player) GetName() string {
@@ -24,17 +33,32 @@ func (player Player) Println() {
 	fmt.Printf(" points: %v\n", player.points)
 }
 
-func (player *Player) play(position int) {
+func (player *Player) play(position int) error {
+	if len(player.cards) == 0 {
+		return errors.New("This player has no cards mama")
+	}
+	if position > len(player.cards) {
+		return errors.New("this position does not exist")
+	}
+
 	player.cards = remove(player.cards, position)
+
+	return nil
 }
 
-func (player *Player) AutoPlay(game *Game) bool {
+func (player *Player) AutoPlay(game *Game) error {
 	for position, _ := range player.cards {
-		if game.PlayCardPublic(player, position) == true {
-			return true
+		if game.PlayCardPublic(player, position, true) == nil {
+			return nil
+		}
+		if game.PlayCardPublic(player, position, false) == nil {
+			return nil
 		}
 	}
-	return false
+	if err := game.Pick(player); err == nil {
+		return player.AutoPlay(game)
+	}
+	return errors.New("There is no possible card to play")
 }
 
 func (player *Player) getSumOfPoints() int {
