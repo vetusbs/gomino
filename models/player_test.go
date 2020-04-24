@@ -1,9 +1,8 @@
 package models_test
 
 import (
-	. "gomino/models"
 	"testing"
-
+	"github.com/vetusbs/gomino/models"
 	"github.com/stretchr/testify/assert"
 )
 
