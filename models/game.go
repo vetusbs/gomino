@@ -5,14 +5,19 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // Game
 type Game struct {
+	id            string
 	board         *Board
 	players       []*Player
 	currentPlayer int
 }
+
+func (game *Game) GetId() string { return game.id }
 
 func (game *Game) IsFinished() bool {
 	for _, p := range game.players {
@@ -111,7 +116,9 @@ func InitGame(numberOfPlayers int) Game {
 	//game.board.sink = remove(game.board.sink, 0)
 	//game.players[1].cards = append(game.players[1].cards, cardtest)
 
+	uuid, _ := uuid.NewUUID()
 	return Game{
+		id:            uuid.String(),
 		players:       players,
 		currentPlayer: 0,
 		board: &Board{
