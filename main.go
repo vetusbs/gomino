@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/vetusbs/gomino/controller"
 	"github.com/vetusbs/gomino/models"
 	"github.com/vetusbs/gomino/server"
 )
@@ -12,9 +13,13 @@ import (
 var hub server.Hub
 
 func main() {
-	mux := http.NewServeMux()
-	hub = server.Hub{Games: make(map[string]*models.Game)}
+	mux := controller.Register()
+	hub := server.InitHub()
 	// should be a post
+	type test struct {
+		Id string `json`
+	}
+
 	mux.HandleFunc("/createGame", func(w http.ResponseWriter, request *http.Request) {
 		game := models.InitGame(3)
 		hub.Games[game.GetId()] = &game
@@ -38,18 +43,7 @@ func main() {
 		w.Write(js)
 	})
 
-	// move game
-	mux.HandleFunc("/move", func(w http.ResponseWriter, request *http.Request) {
-		game := models.InitGame(3)
-
-		js, _ := json.Marshal(models.CreateGameDto(&game))
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(200)
-		w.Write(js)
-	})
-
-	http.ListenAndServe(":3000", mux)
+	http.ListenAndServeTLS(":3000", "certs/server.crt", "certs/server.key", mux)
 }
 
 func main0() {

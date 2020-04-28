@@ -1,12 +1,15 @@
 package models
 
+import "fmt"
+
 type GameDto struct {
-	ID      string
+	ID      string `json:"id"`
 	Cards   []CardDto
 	Players []PlayerDto
 }
 
 func CreateGameDto(Game *Game) GameDto {
+	fmt.Println("CREATE GAME_DTO")
 	current := Game.board.head
 	cards := make([]CardDto, 0)
 	for current != nil {
@@ -14,23 +17,28 @@ func CreateGameDto(Game *Game) GameDto {
 			current.left,
 			current.right,
 		})
+		current = current.nextCard
 	}
-
+	fmt.Println("CREATE GAME_DTO END BOARD")
 	players := make([]PlayerDto, 0)
 
-	for _, p := range Game.players {
-		playerCards := make([]CardDto, len(p.cards))
-		for i, p := range Game.players {
+	for _, player := range Game.players {
+		playerCards := make([]CardDto, len(player.cards))
+		for i, card := range player.cards {
 			playerCards[i] = CardDto{
-				Left:  p.cards[i].left,
-				Right: p.cards[i].right,
+				Left:  card.left,
+				Right: card.right,
 			}
 		}
 		players = append(players, PlayerDto{
 			Cards:  playerCards,
-			points: p.points,
+			points: player.points,
+			Name:   player.GetName(),
 		})
 	}
+
+	fmt.Println("CREATE GAME_DTO END PLAYERS")
+	Game.PrintGameState()
 
 	return GameDto{ID: Game.GetId(), Cards: cards, Players: players}
 }
@@ -38,9 +46,10 @@ func CreateGameDto(Game *Game) GameDto {
 type PlayerDto struct {
 	Cards  []CardDto
 	points []int
+	Name   string
 }
 
 type CardDto struct {
-	Left  int
-	Right int
+	Left  int `json:"left"`
+	Right int `json:"right"`
 }
