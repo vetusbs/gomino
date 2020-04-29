@@ -17,8 +17,11 @@ func game() http.HandlerFunc {
 		w.Header().Set("Access-Control-Allow-Methods", "*")
 		w.Header().Set("Access-Control-Allow-Headers", "*")
 		if r.Method == http.MethodPost {
-			fmt.Println("START")
-			game := models.InitGame(3)
+			data := views.CreateGameRequest{}
+			json.NewDecoder(r.Body).Decode(&data)
+			fmt.Println(data)
+			game := models.InitGame(data)
+
 			server.AddGame(&game)
 
 			w.Header().Set("Content-Type", "application/json")
@@ -42,12 +45,21 @@ func game() http.HandlerFunc {
 			fmt.Println(data)
 
 			game := server.GetGame(data.Game)
-			if err := game.PlayCardPublic(game.GetCurrentPlayer(), int(data.Details["position"].(float64)), data.Details["head"].(bool)); err != nil {
-				w.Write([]byte("Some error"))
+			if err := game.PlayCard(
+				game.GetCurrentPlayer(),
+				models.CardDto{
+					Left:  int(data.Details["left"].(float64)),
+					Right: int(data.Details["right"].(float64)),
+				},
+			); err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				w.Write([]byte(err.Error()))
 				return
 			}
+
 			w.WriteHeader(http.StatusAccepted)
-			json.NewEncoder(w).Encode(data)
+			js, _ := json.Marshal(models.CreateGameDto(game))
+			w.Write(js)
 			fmt.Println("END")
 		}
 	}

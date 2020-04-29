@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/vetusbs/gomino/views"
+
 	"github.com/vetusbs/gomino/controller"
 	"github.com/vetusbs/gomino/models"
 	"github.com/vetusbs/gomino/server"
@@ -21,7 +23,7 @@ func main() {
 	}
 
 	mux.HandleFunc("/createGame", func(w http.ResponseWriter, request *http.Request) {
-		game := models.InitGame(3)
+		game := models.InitGame(views.CreateGameRequest{Players: 3})
 		hub.Games[game.GetId()] = &game
 
 		js, _ := json.Marshal(models.CreateGameDto(&game))
@@ -47,7 +49,7 @@ func main() {
 }
 
 func main0() {
-	game := models.InitGame(3)
+	game := models.InitGame(views.CreateGameRequest{Players: 3})
 
 	game.PrintGameState()
 	var currentPlayer *models.Player
