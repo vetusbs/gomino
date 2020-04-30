@@ -3,9 +3,9 @@ package models
 import "fmt"
 
 type GameDto struct {
-	ID      string `json:"id"`
-	Cards   []CardDto
-	Players []PlayerDto
+	ID      string      `json:"id"`
+	Cards   []CardDto   `json:"cards"`
+	Players []PlayerDto `json:"players"`
 }
 
 func CreateGameDto(Game *Game) GameDto {
