@@ -40,23 +40,31 @@ func game() http.HandlerFunc {
 			w.Write(js)
 			fmt.Println("END")
 		} else if r.Method == http.MethodPut {
+			fmt.Printf("Method put start")
 			data := views.ActionRequest{}
 			json.NewDecoder(r.Body).Decode(&data)
-			fmt.Println(data)
-
 			game := server.GetGame(data.Game)
-			if err := game.PlayCard(
-				game.GetCurrentPlayer(),
-				models.CardDto{
-					Left:  int(data.Details["left"].(float64)),
-					Right: int(data.Details["right"].(float64)),
-				},
-			); err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte(err.Error()))
-				return
-			}
+			fmt.Printf("Method put for player %v %v", game.GetCurrentPlayer(), data)
 
+			if data.Type == "play" {
+				isLeft := bool(data.Details["isLeft"].(bool))
+
+				if err := game.PlayCard(
+					game.GetCurrentPlayer(),
+					models.CardDto{
+						Left:  int(data.Details["left"].(float64)),
+						Right: int(data.Details["right"].(float64)),
+					}, isLeft); err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte(err.Error()))
+					return
+				}
+			} else if data.Type == "pick" {
+				fmt.Printf("current player %v", game.GetCurrentPlayer())
+				game.Pick(game.GetCurrentPlayer())
+			} else {
+
+			}
 			w.WriteHeader(http.StatusAccepted)
 			js, _ := json.Marshal(models.CreateGameDto(game))
 			w.Write(js)

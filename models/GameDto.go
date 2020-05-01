@@ -6,6 +6,7 @@ type GameDto struct {
 	ID      string      `json:"id"`
 	Cards   []CardDto   `json:"cards"`
 	Players []PlayerDto `json:"players"`
+	Sink    int         `json:"sink"`
 }
 
 func CreateGameDto(Game *Game) GameDto {
@@ -14,11 +15,22 @@ func CreateGameDto(Game *Game) GameDto {
 	cards := make([]CardDto, 0)
 	for current != nil {
 		cards = append(cards, CardDto{
-			current.left,
-			current.right,
+			Left:    current.left,
+			Right:   current.right,
+			Reverse: current.reverse,
 		})
 		current = current.nextCard
 	}
+
+	sink := make([]CardDto, 0)
+	for _, cardSink := range Game.board.sink {
+		sink = append(sink, CardDto{
+			Left:    cardSink.left,
+			Right:   cardSink.right,
+			Reverse: cardSink.reverse,
+		})
+	}
+
 	fmt.Println("CREATE GAME_DTO END BOARD")
 	players := make([]PlayerDto, 0)
 
@@ -26,8 +38,9 @@ func CreateGameDto(Game *Game) GameDto {
 		playerCards := make([]CardDto, len(player.cards))
 		for i, card := range player.cards {
 			playerCards[i] = CardDto{
-				Left:  card.left,
-				Right: card.right,
+				Left:    card.left,
+				Right:   card.right,
+				Reverse: card.reverse,
 			}
 		}
 		players = append(players, PlayerDto{
@@ -40,7 +53,7 @@ func CreateGameDto(Game *Game) GameDto {
 	fmt.Println("CREATE GAME_DTO END PLAYERS")
 	Game.PrintGameState()
 
-	return GameDto{ID: Game.GetId(), Cards: cards, Players: players}
+	return GameDto{ID: Game.GetId(), Cards: cards, Players: players, Sink: len(Game.board.sink)}
 }
 
 type PlayerDto struct {
@@ -50,6 +63,7 @@ type PlayerDto struct {
 }
 
 type CardDto struct {
-	Left  int `json:"left"`
-	Right int `json:"right"`
+	Left    int  `json:"left"`
+	Right   int  `json:"right"`
+	Reverse bool `json:"reverse"`
 }

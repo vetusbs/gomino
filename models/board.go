@@ -30,13 +30,19 @@ func (g *Board) PrintBoard() {
 // the movemnt is allowed.
 // params:
 // card : the actual card to put into the board
-// head : true if the card goes to the head. false if it goes to the tail.
-func (board *Board) playCard(card *Card, head bool) error {
+// isLeft : true if the card number is the left
+func (board *Board) playCard(card *Card, isLeft bool) error {
 	// TODO: fix the reverse for the first card, when left and right are nil.
+	var targetNumber int
+	if isLeft == true {
+		targetNumber = card.left
+	} else {
+		targetNumber = card.right
+	}
 	if board.head == nil {
 		board.head = card
 		board.tail = card
-	} else if head == true && board.validatePlayHead(card) {
+	} else if board.validatePlayHead(targetNumber) {
 		fmt.Printf("validated for head %v --- %v \n", card, board.head)
 		if board.head.isInitialCard() && card.right != board.head.left {
 			card.reverse = true
@@ -47,7 +53,7 @@ func (board *Board) playCard(card *Card, head bool) error {
 		board.head.prevCard = card
 		card.nextCard = board.head
 		board.head = card
-	} else if head == false && board.validatePlayTail(card) {
+	} else if board.validatePlayTail(targetNumber) {
 		fmt.Println("validated for tail")
 		if board.head.isInitialCard() && card.left != board.head.right {
 			card.reverse = true
@@ -65,30 +71,30 @@ func (board *Board) playCard(card *Card, head bool) error {
 	return nil
 }
 
-func (board *Board) validatePlayHead(card *Card) bool {
+func (board *Board) validatePlayHead(targetNumber int) bool {
 	if board.head.reverse == true {
 		fmt.Println("valid for reverse")
-		if board.head.right == card.left || board.head.right == card.right {
+		if board.head.right == targetNumber {
 			return true
 		}
 	} else {
 		fmt.Println("valid for not reverse")
-		if board.head.left == card.left || board.head.left == card.right {
+		if board.head.left == targetNumber {
 			return true
 		}
 	}
 	return false
 }
 
-func (board *Board) validatePlayTail(card *Card) bool {
+func (board *Board) validatePlayTail(targetNumber int) bool {
 	if board.tail.reverse == true {
 		fmt.Println("valid for reverse")
-		if board.tail.left == card.left || board.tail.left == card.right {
+		if board.tail.left == targetNumber {
 			return true
 		}
 	} else {
 		fmt.Println("valid for not reverse")
-		if board.tail.right == card.left || board.tail.right == card.right {
+		if board.tail.right == targetNumber {
 			return true
 		}
 	}

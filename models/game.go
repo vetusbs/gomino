@@ -38,17 +38,17 @@ func (game *Game) nextPlayer() {
 	game.currentPlayer = (game.currentPlayer + 1) % len(game.players)
 }
 
-func (game *Game) PlayCard(player *Player, inputCard CardDto) error {
+func (game *Game) PlayCard(player *Player, inputCard CardDto, isLeft bool) error {
 	for i, card := range player.cards {
 		fmt.Println(card, inputCard)
 		if card.left == inputCard.Left && card.right == inputCard.Right {
-			return game.PlayCardPublic(player, i, true)
+			return game.PlayCardPublic(player, i, isLeft)
 		}
 	}
 	return fmt.Errorf("player: %v does not have this card", player.name)
 }
 
-func (game *Game) PlayCardPublic(player *Player, cardPosition int, head bool) error {
+func (game *Game) PlayCardPublic(player *Player, cardPosition int, isLeft bool) error {
 
 	if player != game.players[game.currentPlayer] {
 		return errors.New("this is not the current player")
@@ -59,7 +59,7 @@ func (game *Game) PlayCardPublic(player *Player, cardPosition int, head bool) er
 	}
 
 	card := player.cards[cardPosition]
-	result := game.board.playCard(card, head)
+	result := game.board.playCard(card, isLeft)
 	if result == nil {
 		player.play(cardPosition)
 		if len(game.players[game.currentPlayer].cards) == 0 {
