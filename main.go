@@ -51,7 +51,7 @@ func main() {
 		w.Write(js)
 	})
 
-	fmt.Printf("listening in port %v", port)
+	fmt.Printf("listening in port %v \n", port)
 	http.ListenAndServeTLS(":"+port, "certs/server.crt", "certs/server.key", mux)
 }
 
