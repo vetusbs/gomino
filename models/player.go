@@ -10,6 +10,7 @@ type Player struct {
 	name   string
 	cards  []*Card
 	points []int
+	userID string
 }
 
 func NewPlayer(name string, cards []*Card, points []int) Player {

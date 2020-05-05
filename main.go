@@ -1,13 +1,55 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"net/http"
 
+	"github.com/vetusbs/gomino/views"
+
+	"github.com/vetusbs/gomino/controller"
 	"github.com/vetusbs/gomino/models"
+	"github.com/vetusbs/gomino/server"
 )
 
+var hub server.Hub
+
 func main() {
-	game := models.InitGame(3)
+	mux := controller.Register()
+	hub := server.InitHub()
+	// should be a post
+	type test struct {
+		Id string `json`
+	}
+
+	mux.HandleFunc("/createGame", func(w http.ResponseWriter, request *http.Request) {
+		game := models.InitGame(views.CreateGameRequest{Players: 3})
+		hub.Games[game.GetId()] = &game
+
+		js, _ := json.Marshal(models.CreateGameDto(&game))
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(js)
+	})
+
+	// get Game
+	mux.HandleFunc("/get", func(w http.ResponseWriter, r *http.Request) {
+
+		name := r.URL.Query().Get("name")
+
+		js, _ := json.Marshal(models.CreateGameDto(hub.Games[name]))
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(200)
+		w.Write(js)
+	})
+
+	http.ListenAndServeTLS(":3000", "certs/server.crt", "certs/server.key", mux)
+}
+
+func main0() {
+	game := models.InitGame(views.CreateGameRequest{Players: 3})
 
 	game.PrintGameState()
 	var currentPlayer *models.Player

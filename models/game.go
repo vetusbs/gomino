@@ -5,14 +5,21 @@ import (
 	"fmt"
 	"math/rand"
 	"time"
+
+	"github.com/vetusbs/gomino/views"
+
+	"github.com/google/uuid"
 )
 
 // Game
 type Game struct {
+	id            string
 	board         *Board
 	players       []*Player
 	currentPlayer int
 }
+
+func (game *Game) GetId() string { return game.id }
 
 func (game *Game) IsFinished() bool {
 	for _, p := range game.players {
@@ -31,7 +38,17 @@ func (game *Game) nextPlayer() {
 	game.currentPlayer = (game.currentPlayer + 1) % len(game.players)
 }
 
-func (game *Game) PlayCardPublic(player *Player, cardPosition int, head bool) error {
+func (game *Game) PlayCard(player *Player, inputCard CardDto, isLeft bool) error {
+	for i, card := range player.cards {
+		fmt.Println(card, inputCard)
+		if card.left == inputCard.Left && card.right == inputCard.Right {
+			return game.PlayCardPublic(player, i, isLeft)
+		}
+	}
+	return fmt.Errorf("player: %v does not have this card", player.name)
+}
+
+func (game *Game) PlayCardPublic(player *Player, cardPosition int, isLeft bool) error {
 
 	if player != game.players[game.currentPlayer] {
 		return errors.New("this is not the current player")
@@ -42,7 +59,7 @@ func (game *Game) PlayCardPublic(player *Player, cardPosition int, head bool) er
 	}
 
 	card := player.cards[cardPosition]
-	result := game.board.playCard(card, head)
+	result := game.board.playCard(card, isLeft)
 	if result == nil {
 		player.play(cardPosition)
 		if len(game.players[game.currentPlayer].cards) == 0 {
@@ -57,6 +74,18 @@ func (game *Game) PlayCardPublic(player *Player, cardPosition int, head bool) er
 		return nil
 	}
 	return result
+}
+
+func (game *Game) AddUser(userId string, userName string) error {
+	for _, player := range game.players {
+		if player.userID == "" {
+			player.name = userName
+			player.userID = userId
+			return nil
+		}
+	}
+
+	return errors.New("There are no cards to pick")
 }
 
 func (game *Game) Pick(player *Player) error {
@@ -94,7 +123,25 @@ func (game *Game) restartGame() {
 }
 
 // InitGame Creates an empty game.
-func InitGame(numberOfPlayers int) Game {
+func InitGame(createGameRequest views.CreateGameRequest) Game {
+
+	numberOfPlayers := func() int {
+		if createGameRequest.Players == 0 {
+			return 4
+		} else {
+			return createGameRequest.Players
+		}
+	}()
+
+	gameId := func() string {
+		if createGameRequest.ID == "" {
+			uuid, _ := uuid.NewUUID()
+			return uuid.String()
+		} else {
+			return createGameRequest.ID
+		}
+	}()
+
 	gameCards := createCards()
 	players := make([]*Player, numberOfPlayers)
 	nCardsPerUser := cardsPerUser(numberOfPlayers)
@@ -112,6 +159,7 @@ func InitGame(numberOfPlayers int) Game {
 	//game.players[1].cards = append(game.players[1].cards, cardtest)
 
 	return Game{
+		id:            gameId,
 		players:       players,
 		currentPlayer: 0,
 		board: &Board{
