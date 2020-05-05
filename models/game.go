@@ -76,6 +76,18 @@ func (game *Game) PlayCardPublic(player *Player, cardPosition int, isLeft bool) 
 	return result
 }
 
+func (game *Game) AddUser(userId string, userName string) error {
+	for _, player := range game.players {
+		if player.userID == "" {
+			player.name = userName
+			player.userID = userId
+			return nil
+		}
+	}
+
+	return errors.New("There are no cards to pick")
+}
+
 func (game *Game) Pick(player *Player) error {
 	if game.players[game.currentPlayer] == player {
 		if len(game.board.sink) > 0 {

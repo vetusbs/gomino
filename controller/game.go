@@ -62,6 +62,14 @@ func game() http.HandlerFunc {
 			} else if data.Type == "pick" {
 				fmt.Printf("current player %v", game.GetCurrentPlayer())
 				game.Pick(game.GetCurrentPlayer())
+			} else if data.Type == "addUser" {
+				userID := string(data.Details["userId"].(string))
+				userName := string(data.Details["userName"].(string))
+				if err := game.AddUser(userID, userName); err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte(err.Error()))
+					return
+				}
 			} else {
 
 			}
