@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 
 	"github.com/vetusbs/gomino/views"
 
@@ -15,6 +16,11 @@ import (
 var hub server.Hub
 
 func main() {
+	port := os.Getenv("PORT")
+
+	if port == "" {
+		port = "3000"
+	}
 	mux := controller.Register()
 	hub := server.InitHub()
 	// should be a post
@@ -45,7 +51,7 @@ func main() {
 		w.Write(js)
 	})
 
-	http.ListenAndServeTLS(":3000", "certs/server.crt", "certs/server.key", mux)
+	http.ListenAndServeTLS(":"+port, "certs/server.crt", "certs/server.key", mux)
 }
 
 func main0() {
