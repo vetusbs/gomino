@@ -52,7 +52,8 @@ func main() {
 	})
 
 	fmt.Printf("listening in port %v \n", port)
-	http.ListenAndServeTLS(":"+port, "certs/server.crt", "certs/server.key", mux)
+	//http.ListenAndServeTLS(":"+port, "certs/server.crt", "certs/server.key", mux)
+	http.ListenAndServe(":"+port, mux)
 }
 
 func main0() {
