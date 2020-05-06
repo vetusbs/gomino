@@ -78,7 +78,7 @@ func (game *Game) PlayCardPublic(player *Player, cardPosition int, isLeft bool) 
 
 func (game *Game) AddUser(userId string, userName string) error {
 	for _, player := range game.players {
-		if player.userID == "" {
+		if player.userID == "" || player.userID == userId {
 			player.name = userName
 			player.userID = userId
 			return nil
