@@ -17,17 +17,23 @@ type Game struct {
 	board         *Board
 	players       []*Player
 	currentPlayer int
+	shouldRestart bool
+	finished      bool
 }
 
 func (game *Game) GetId() string { return game.id }
 
 func (game *Game) IsFinished() bool {
+	if game.finished == true {
+		return true
+	}
+
 	for _, p := range game.players {
 		if p.getSumOfPoints() > 100 {
-			return true
+			game.finished = true
 		}
 	}
-	return false
+	return game.finished
 }
 
 func (game *Game) GetCurrentPlayer() *Player {
@@ -39,6 +45,10 @@ func (game *Game) nextPlayer() {
 }
 
 func (game *Game) PlayCard(player *Player, inputCard CardDto, isLeft bool) error {
+	if game.IsFinished() == true {
+		return errors.New("This Game has finished")
+	}
+
 	for i, card := range player.cards {
 		fmt.Println(card, inputCard)
 		if card.left == inputCard.Left && card.right == inputCard.Right {
@@ -63,17 +73,27 @@ func (game *Game) PlayCardPublic(player *Player, cardPosition int, isLeft bool) 
 	if result == nil {
 		player.play(cardPosition)
 		if len(game.players[game.currentPlayer].cards) == 0 {
+			game.shouldRestart = true
 			fmt.Printf("\n*****************************************")
 			fmt.Printf("\n***** GAME IS OVER %v WINS ***", game.players[game.currentPlayer].name)
 			fmt.Printf("\n*****************************************\n")
 			game.addPoints()
-			game.restartGame()
+		} else if isClosed, _ := game.isItClosed(); isClosed == true {
+			fmt.Printf("\n*****************************************")
+			fmt.Printf("\n************ GAME IS CLOSED *************")
+			fmt.Printf("\n*****************************************\n")
+			game.addPoints()
+			game.shouldRestart = true
 		} else {
 			game.nextPlayer()
 		}
 		return nil
 	}
 	return result
+}
+
+func (game *Game) isItClosed() (bool, error) {
+	return game.board.isItClosed()
 }
 
 func (game *Game) AddUser(userId string, userName string) error {
@@ -100,25 +120,42 @@ func (game *Game) Pick(player *Player) error {
 }
 
 func (game *Game) addPoints() {
+	minPoints := 1000
+
+	for i, player := range game.players {
+		playerPoints := player.countPoints()
+		if player.countPoints() < minPoints {
+			game.currentPlayer = i
+			minPoints = playerPoints
+		}
+	}
+
 	for _, player := range game.players {
-		if player == game.players[game.currentPlayer] {
+		playerPoints := player.countPoints()
+		if playerPoints == minPoints {
 			player.points = append(player.points, 0)
 		} else {
-			player.points = append(player.points, player.countPoints())
+			player.points = append(player.points, playerPoints)
 		}
 	}
 }
 
-func (game *Game) restartGame() {
-	gameCards := createCards()
-	nCardsPerUser := cardsPerUser(len(game.players))
+func (game *Game) Shuffle() error {
+	fmt.Printf(" game shuffle %v", game.shouldRestart)
+	if game.shouldRestart == true {
+		gameCards := createCards()
+		nCardsPerUser := cardsPerUser(len(game.players))
 
-	for i := 0; i < len(game.players); i++ {
-		playerCards := gameCards[i*nCardsPerUser : i*nCardsPerUser+nCardsPerUser]
-		game.players[i].cards = playerCards
-	}
-	game.board = &Board{
-		sink: gameCards[len(game.players)*nCardsPerUser : 28],
+		for i := 0; i < len(game.players); i++ {
+			playerCards := gameCards[i*nCardsPerUser : i*nCardsPerUser+nCardsPerUser]
+			game.players[i].cards = playerCards
+		}
+		game.board = &Board{
+			sink: gameCards[len(game.players)*nCardsPerUser : 28],
+		}
+		return nil
+	} else {
+		return errors.New("The game has not finished yet")
 	}
 }
 
@@ -158,14 +195,30 @@ func InitGame(createGameRequest views.CreateGameRequest) Game {
 	//game.board.sink = remove(game.board.sink, 0)
 	//game.players[1].cards = append(game.players[1].cards, cardtest)
 
+	firstPlayer := findWhoStart(players)
+
 	return Game{
 		id:            gameId,
 		players:       players,
-		currentPlayer: 0,
+		currentPlayer: firstPlayer,
 		board: &Board{
 			sink: gameCards[numberOfPlayers*nCardsPerUser : 28],
 		},
 	}
+}
+
+func findWhoStart(players []*Player) int {
+	result := 0
+	lastMaxDouble := -1
+	for i, player := range players {
+		for _, card := range player.cards {
+			if card.isDouble() == true && card.left > lastMaxDouble {
+				result = i
+				lastMaxDouble = card.left
+			}
+		}
+	}
+	return result
 }
 
 func createCards() []*Card {

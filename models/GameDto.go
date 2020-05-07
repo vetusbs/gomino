@@ -43,10 +43,12 @@ func CreateGameDto(Game *Game) GameDto {
 				Reverse: card.reverse,
 			}
 		}
+
 		players = append(players, PlayerDto{
-			Cards:  playerCards,
-			points: player.points,
-			Name:   player.GetName(),
+			Cards:           playerCards,
+			Points:          player.points,
+			Name:            player.GetName(),
+			IsCurrentPlayer: player == Game.GetCurrentPlayer(),
 		})
 	}
 
@@ -57,9 +59,10 @@ func CreateGameDto(Game *Game) GameDto {
 }
 
 type PlayerDto struct {
-	Cards  []CardDto
-	points []int
-	Name   string
+	Cards           []CardDto `json:"cards"`
+	Points          []int     `json:"points"`
+	Name            string    `json:"name"`
+	IsCurrentPlayer bool      `json:"isCurrentPlayer"`
 }
 
 type CardDto struct {

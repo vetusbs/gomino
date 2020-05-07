@@ -70,6 +70,13 @@ func game() http.HandlerFunc {
 					w.Write([]byte(err.Error()))
 					return
 				}
+			} else if data.Type == "shuffle" {
+				err := game.Shuffle()
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					w.Write([]byte(err.Error()))
+					return
+				}
 			} else {
 
 			}

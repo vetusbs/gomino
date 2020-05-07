@@ -100,3 +100,24 @@ func (board *Board) validatePlayTail(targetNumber int) bool {
 	}
 	return false
 }
+
+func (board *Board) isItClosed() (bool, error) {
+	counter := 0
+	if board.head != nil && board.head.getFreeNumber() == board.tail.getFreeNumber() {
+		current := board.head
+
+		for current != nil {
+			fmt.Printf(" current values: %v ", counter)
+			if current.left == board.head.getFreeNumber() {
+				counter++
+			}
+
+			if current.right == board.head.getFreeNumber() {
+				counter++
+			}
+
+			current = current.nextCard
+		}
+	}
+	return counter == 8, nil
+}
