@@ -85,7 +85,12 @@ func (game *Game) PlayCardPublic(player *Player, cardPosition int, isLeft bool) 
 			game.addPoints()
 			game.shouldRestart = true
 		} else {
+			fmt.Println("next player " + game.GetCurrentPlayer().userID)
 			game.nextPlayer()
+			fmt.Println("next player " + game.GetCurrentPlayer().userID)
+			for game.GetCurrentPlayer().userID == "" {
+				game.GetCurrentPlayer().AutoPlay(game)
+			}
 		}
 		return nil
 	}
