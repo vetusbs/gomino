@@ -84,6 +84,8 @@ func game() http.HandlerFunc {
 			js, _ := json.Marshal(models.CreateGameDto(game))
 			w.Write(js)
 			fmt.Println("END")
+			game.Notify(func(userId string) { server.SendMessage(userId, "hi") })
+			server.SendMessage("vetusbs@gmail.com", "1000")
 		}
 	}
 }

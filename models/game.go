@@ -119,6 +119,14 @@ func (game *Game) Pick(player *Player) error {
 	return errors.New("There are no cards to pick")
 }
 
+type send func(string)
+
+func (game *Game) Notify(fn send) {
+	for _, player := range game.players {
+		fn(player.userID)
+	}
+}
+
 func (game *Game) addPoints() {
 	minPoints := 1000
 
