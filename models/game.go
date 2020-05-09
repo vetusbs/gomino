@@ -199,8 +199,9 @@ func InitGame(createGameRequest views.CreateGameRequest) Game {
 	for i := 0; i < numberOfPlayers; i++ {
 		playerCards := gameCards[i*nCardsPerUser : i*nCardsPerUser+nCardsPerUser]
 		players[i] = &Player{
-			name:  fmt.Sprint("player-", i),
-			cards: playerCards,
+			name:   fmt.Sprint("player-", i),
+			cards:  playerCards,
+			points: []int{},
 		}
 	}
 
