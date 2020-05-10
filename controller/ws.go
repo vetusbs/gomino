@@ -73,8 +73,8 @@ func echo(conn *websocket.Conn) {
 
 		fmt.Printf("Got message: %#v\n", m)
 
-		if err = conn.WriteJSON(m); err != nil {
-			fmt.Println(err)
-		}
+		//if err = conn.WriteJSON(m); err != nil {
+		//	fmt.Println(err)
+		//}
 	}
 }

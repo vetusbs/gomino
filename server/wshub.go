@@ -23,10 +23,7 @@ func AddConnection(userId string, connection *websocket.Conn) {
 }
 
 func SendMessage(userId string, message string) {
-	fmt.Println("send message to " + userId)
 	if wsHub.connections[userId] != nil {
 		wsHub.connections[userId].WriteMessage(websocket.TextMessage, []byte(message))
-	} else {
-		fmt.Println("connection is nil ")
 	}
 }

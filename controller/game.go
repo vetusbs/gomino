@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/vetusbs/gomino/controller/dto"
 	"github.com/vetusbs/gomino/models"
 	"github.com/vetusbs/gomino/server"
 	"github.com/vetusbs/gomino/views"
@@ -26,7 +28,7 @@ func game() http.HandlerFunc {
 
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(200)
-			js, _ := json.Marshal(models.CreateGameDto(&game))
+			js, _ := json.Marshal(game.Map())
 			w.Write(js)
 			fmt.Println("END")
 		} else if r.Method == http.MethodGet {
@@ -36,7 +38,7 @@ func game() http.HandlerFunc {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusOK)
 			game := server.GetGame(id)
-			js, _ := json.Marshal(models.CreateGameDto(game))
+			js, _ := json.Marshal(game.Map())
 			w.Write(js)
 			fmt.Println("END")
 		} else if r.Method == http.MethodPut {
@@ -47,18 +49,21 @@ func game() http.HandlerFunc {
 			fmt.Printf("Method put for player %v %v", game.GetCurrentPlayer(), data)
 
 			if data.Type == "play" {
-				isLeft := bool(data.Details["isLeft"].(bool))
 
-				if err := game.PlayCard(
-					game.GetCurrentPlayer(),
-					models.CardDto{
-						Left:  int(data.Details["left"].(float64)),
-						Right: int(data.Details["right"].(float64)),
-					}, isLeft); err != nil {
-					w.WriteHeader(http.StatusBadRequest)
-					w.Write([]byte(err.Error()))
-					return
-				}
+				playAction(game, data)
+				js, _ := json.Marshal(game.Map())
+				game.Notify(func(userId string) { server.SendMessage(userId, string(js)) })
+
+				go func() {
+					fmt.Printf("current game %p", game)
+					for game.GetCurrentPlayer().IsBot() {
+						time.Sleep(1000 * time.Millisecond)
+						game.GetCurrentPlayer().AutoPlay(game)
+						js, _ := json.Marshal(game.Map())
+						game.Notify(func(userId string) { server.SendMessage(userId, string(js)) })
+					}
+				}()
+
 			} else if data.Type == "pick" {
 				fmt.Printf("current player %v", game.GetCurrentPlayer())
 				game.Pick(game.GetCurrentPlayer())
@@ -81,11 +86,25 @@ func game() http.HandlerFunc {
 
 			}
 			w.WriteHeader(http.StatusAccepted)
-			js, _ := json.Marshal(models.CreateGameDto(game))
+			js, _ := json.Marshal(game.Map())
 			w.Write(js)
 			fmt.Println("END")
-			game.Notify(func(userId string) { server.SendMessage(userId, "hi") })
-			server.SendMessage("vetusbs@gmail.com", "1000")
+			game.Notify(func(userId string) { server.SendMessage(userId, string(js)) })
 		}
+	}
+}
+
+func playAction(game *models.Game, data views.ActionRequest) {
+	isLeft := bool(data.Details["isLeft"].(bool))
+
+	if err := game.PlayCard(
+		game.GetCurrentPlayer(),
+		dto.CardDto{
+			Left:  int(data.Details["left"].(float64)),
+			Right: int(data.Details["right"].(float64)),
+		}, isLeft); err != nil {
+		//w.WriteHeader(http.StatusBadRequest)
+		//w.Write([]byte(err.Error()))
+		return
 	}
 }

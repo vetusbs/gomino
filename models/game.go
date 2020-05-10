@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/vetusbs/gomino/controller/dto"
 	"github.com/vetusbs/gomino/views"
 
 	"github.com/google/uuid"
@@ -41,10 +42,12 @@ func (game *Game) GetCurrentPlayer() *Player {
 }
 
 func (game *Game) nextPlayer() {
+	fmt.Printf("current game %p", game)
 	game.currentPlayer = (game.currentPlayer + 1) % len(game.players)
+	fmt.Println("next player " + game.GetCurrentPlayer().userID)
 }
 
-func (game *Game) PlayCard(player *Player, inputCard CardDto, isLeft bool) error {
+func (game *Game) PlayCard(player *Player, inputCard dto.CardDto, isLeft bool) error {
 	if game.IsFinished() == true {
 		return errors.New("This Game has finished")
 	}
@@ -87,14 +90,27 @@ func (game *Game) PlayCardPublic(player *Player, cardPosition int, isLeft bool) 
 		} else {
 			fmt.Println("next player " + game.GetCurrentPlayer().userID)
 			game.nextPlayer()
-			fmt.Println("next player " + game.GetCurrentPlayer().userID)
-			for game.GetCurrentPlayer().userID == "" {
-				game.GetCurrentPlayer().AutoPlay(game)
-			}
 		}
 		return nil
 	}
 	return result
+}
+
+func (game *Game) playAuto() {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println("deferred")
+	}()
+
+	fmt.Println("Hello in world goroutine")
+	for game.GetCurrentPlayer().userID == "" {
+		time.Sleep(2 * time.Second)
+		game.GetCurrentPlayer().AutoPlay(game)
+	}
+	fmt.Println("Hello out world goroutine")
+
 }
 
 func (game *Game) isItClosed() (bool, error) {

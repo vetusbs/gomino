@@ -95,3 +95,7 @@ func remove(slice []*Card, i int) []*Card {
 
 	return slice
 }
+
+func (player *Player) IsBot() bool {
+	return player.userID == ""
+}

@@ -17,5 +17,5 @@ func main() {
 	mux := controller.Register()
 
 	fmt.Printf("listening in port %v \n", port)
-	http.ListenAndServe(":"+port, mux)
+	panic(http.ListenAndServe(":"+port, mux))
 }
