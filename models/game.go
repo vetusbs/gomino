@@ -7,11 +7,14 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	log "github.com/sirupsen/logrus"
 	"github.com/vetusbs/gomino/controller/dto"
 	"github.com/vetusbs/gomino/views"
 
 	"github.com/google/uuid"
 )
+
+const ()
 
 // Game
 type Game struct {
@@ -259,17 +262,17 @@ func cardsPerUser(numberOfPlayers int) int {
 }
 
 func (game *Game) PrintGameState() {
-	fmt.Printf("\nGAME STATUS\nSINK\n")
+	log.Debug("\nGAME STATUS\nSINK\n")
 
 	game.board.PrintBoard()
 
-	fmt.Printf("\nPLAYERS\n")
+	log.Debug("\nPLAYERS\n")
 	for _, p := range game.players {
 		p.Println()
 	}
 }
 
 func (game *Game) AddConnection(userId string, connection *websocket.Conn) {
-	fmt.Printf("Add connection for user %v", userId)
-	game.wsHub.connections[userId] = connection
+	log.Debug("Add connection for user %v", userId)
+	game.wsHub.AddConnection(userId, connection)
 }

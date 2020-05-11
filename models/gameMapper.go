@@ -45,7 +45,5 @@ func (Game Game) Map() dto.GameDto {
 		})
 	}
 
-	Game.PrintGameState()
-
 	return dto.GameDto{ID: Game.GetId(), Cards: cards, Players: players, Sink: len(Game.board.sink)}
 }

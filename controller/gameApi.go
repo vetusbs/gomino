@@ -30,9 +30,7 @@ func game() http.HandlerFunc {
 			w.WriteHeader(200)
 			js, _ := json.Marshal(game.Map())
 			w.Write(js)
-			fmt.Println("END")
 		} else if r.Method == http.MethodGet {
-			fmt.Println("START")
 			id := mux.Vars(r)["id"]
 
 			w.Header().Set("Content-Type", "application/json")
@@ -40,9 +38,7 @@ func game() http.HandlerFunc {
 			game := server.GetGame(id)
 			js, _ := json.Marshal(game.Map())
 			w.Write(js)
-			fmt.Println("END")
 		} else if r.Method == http.MethodPut {
-			fmt.Printf("Method put start")
 			data := views.ActionRequest{}
 			json.NewDecoder(r.Body).Decode(&data)
 			game := server.GetGame(data.Game)
@@ -84,7 +80,6 @@ func game() http.HandlerFunc {
 			w.WriteHeader(http.StatusAccepted)
 			js, _ := json.Marshal(game.Map())
 			w.Write(js)
-			fmt.Println("END")
 		}
 	}
 }

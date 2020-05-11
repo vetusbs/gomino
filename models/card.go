@@ -2,6 +2,8 @@ package models
 
 import (
 	"fmt"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Card is a representation of one of the 28 cards of the domino game.
@@ -25,9 +27,9 @@ func (c *Card) toString() string {
 
 func (c Card) Println() {
 	if c.reverse == false {
-		fmt.Printf("[%d|%d] ", c.left, c.right)
+		log.Debugf("[%d|%d] ", c.left, c.right)
 	} else {
-		fmt.Printf("[%d|%d] ", c.right, c.left)
+		log.Debugf("[%d|%d] ", c.right, c.left)
 	}
 }
 

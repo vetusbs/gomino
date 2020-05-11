@@ -2,7 +2,8 @@ package models
 
 import (
 	"errors"
-	"fmt"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Player is bla
@@ -27,11 +28,11 @@ func (player *Player) GetName() string {
 
 // Println prints player
 func (player Player) Println() {
-	fmt.Print(player.name, " -- ", len(player.cards), " -- ")
+	log.Debugf(player.name, " -- ", len(player.cards), " -- ")
 	for _, card := range player.cards {
 		card.Println()
 	}
-	fmt.Printf(" points: %v\n", player.points)
+	log.Debugf(" points: %v\n", player.points)
 }
 
 func (player *Player) play(position int) error {

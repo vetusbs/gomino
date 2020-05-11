@@ -2,7 +2,8 @@ package models
 
 import (
 	"errors"
-	"fmt"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // Board is bla
@@ -14,10 +15,10 @@ type Board struct {
 
 func (g *Board) PrintBoard() {
 	for _, card := range g.sink {
-		fmt.Printf("%v ", card.toString())
+		log.Debug("%v ", card.toString())
 	}
 
-	fmt.Printf("\nBOARD\n")
+	log.Debugf("\nBOARD\n")
 	var actual *Card
 	actual = g.head
 	for actual != nil {
@@ -43,22 +44,18 @@ func (board *Board) playCard(card *Card, isLeft bool) error {
 		board.head = card
 		board.tail = card
 	} else if board.validatePlayHead(targetNumber) {
-		fmt.Printf("validated for head %v --- %v \n", card, board.head)
 		if board.head.isInitialCard() && card.right != board.head.left {
 			card.reverse = true
 		} else if board.head.getFreeNumber() == card.left {
-			fmt.Println("set reverse to true")
 			card.reverse = true
 		}
 		board.head.prevCard = card
 		card.nextCard = board.head
 		board.head = card
 	} else if board.validatePlayTail(targetNumber) {
-		fmt.Println("validated for tail")
 		if board.head.isInitialCard() && card.left != board.head.right {
 			card.reverse = true
 		} else if board.tail.getFreeNumber() == card.right {
-			fmt.Println("set reverse to true")
 			card.reverse = true
 		}
 		board.tail.nextCard = card
@@ -73,12 +70,10 @@ func (board *Board) playCard(card *Card, isLeft bool) error {
 
 func (board *Board) validatePlayHead(targetNumber int) bool {
 	if board.head.reverse == true {
-		fmt.Println("valid for reverse")
 		if board.head.right == targetNumber {
 			return true
 		}
 	} else {
-		fmt.Println("valid for not reverse")
 		if board.head.left == targetNumber {
 			return true
 		}
@@ -88,12 +83,10 @@ func (board *Board) validatePlayHead(targetNumber int) bool {
 
 func (board *Board) validatePlayTail(targetNumber int) bool {
 	if board.tail.reverse == true {
-		fmt.Println("valid for reverse")
 		if board.tail.left == targetNumber {
 			return true
 		}
 	} else {
-		fmt.Println("valid for not reverse")
 		if board.tail.right == targetNumber {
 			return true
 		}
@@ -107,7 +100,7 @@ func (board *Board) isItClosed() (bool, error) {
 		current := board.head
 
 		for current != nil {
-			fmt.Printf(" current values: %v ", counter)
+			log.Debugf(" current values: %v ", counter)
 			if current.left == board.head.getFreeNumber() {
 				counter++
 			}
