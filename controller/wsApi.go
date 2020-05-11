@@ -56,8 +56,10 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userID := mux.Vars(r)["userId"]
+	gameID := mux.Vars(r)["gameId"]
 
-	server.AddConnection(userID, conn)
+	game := server.GetGame(gameID)
+	game.AddConnection(userID, conn)
 
 	//go echo(conn)
 }

@@ -51,16 +51,12 @@ func game() http.HandlerFunc {
 			if data.Type == "play" {
 
 				playAction(game, data)
-				js, _ := json.Marshal(game.Map())
-				game.Notify(func(userId string) { server.SendMessage(userId, string(js)) })
 
 				go func() {
 					fmt.Printf("current game %p", game)
 					for game.GetCurrentPlayer().IsBot() {
 						time.Sleep(1000 * time.Millisecond)
 						game.GetCurrentPlayer().AutoPlay(game)
-						js, _ := json.Marshal(game.Map())
-						game.Notify(func(userId string) { server.SendMessage(userId, string(js)) })
 					}
 				}()
 
@@ -89,7 +85,6 @@ func game() http.HandlerFunc {
 			js, _ := json.Marshal(game.Map())
 			w.Write(js)
 			fmt.Println("END")
-			game.Notify(func(userId string) { server.SendMessage(userId, string(js)) })
 		}
 	}
 }

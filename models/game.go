@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"time"
 
+	"github.com/gorilla/websocket"
 	"github.com/vetusbs/gomino/controller/dto"
 	"github.com/vetusbs/gomino/views"
 
@@ -20,6 +21,7 @@ type Game struct {
 	currentPlayer int
 	shouldRestart bool
 	finished      bool
+	wsHub         wsHub
 }
 
 func (game *Game) GetId() string { return game.id }
@@ -91,26 +93,10 @@ func (game *Game) PlayCardPublic(player *Player, cardPosition int, isLeft bool) 
 			fmt.Println("next player " + game.GetCurrentPlayer().userID)
 			game.nextPlayer()
 		}
+		game.wsHub.broadCast(*game)
 		return nil
 	}
 	return result
-}
-
-func (game *Game) playAuto() {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Println(err)
-		}
-		fmt.Println("deferred")
-	}()
-
-	fmt.Println("Hello in world goroutine")
-	for game.GetCurrentPlayer().userID == "" {
-		time.Sleep(2 * time.Second)
-		game.GetCurrentPlayer().AutoPlay(game)
-	}
-	fmt.Println("Hello out world goroutine")
-
 }
 
 func (game *Game) isItClosed() (bool, error) {
@@ -140,14 +126,6 @@ func (game *Game) Pick(player *Player) error {
 	return errors.New("There are no cards to pick")
 }
 
-type send func(string)
-
-func (game *Game) Notify(fn send) {
-	for _, player := range game.players {
-		fn(player.userID)
-	}
-}
-
 func (game *Game) addPoints() {
 	minPoints := 1000
 
@@ -167,6 +145,7 @@ func (game *Game) addPoints() {
 			player.points = append(player.points, playerPoints)
 		}
 	}
+	game.wsHub.broadCast(*game)
 }
 
 func (game *Game) Shuffle() error {
@@ -182,6 +161,7 @@ func (game *Game) Shuffle() error {
 		game.board = &Board{
 			sink: gameCards[len(game.players)*nCardsPerUser : 28],
 		}
+		game.wsHub.broadCast(*game)
 		return nil
 	} else {
 		return errors.New("The game has not finished yet")
@@ -221,20 +201,21 @@ func InitGame(createGameRequest views.CreateGameRequest) Game {
 		}
 	}
 
-	//cardtest := game.board.sink[0]
-	//game.board.sink = remove(game.board.sink, 0)
-	//game.players[1].cards = append(game.players[1].cards, cardtest)
-
 	firstPlayer := findWhoStart(players)
 
-	return Game{
+	game := Game{
 		id:            gameId,
 		players:       players,
 		currentPlayer: firstPlayer,
 		board: &Board{
 			sink: gameCards[numberOfPlayers*nCardsPerUser : 28],
 		},
+		wsHub: NewWsHub(),
 	}
+
+	go game.wsHub.Run()
+
+	return game
 }
 
 func findWhoStart(players []*Player) int {
@@ -286,4 +267,9 @@ func (game *Game) PrintGameState() {
 	for _, p := range game.players {
 		p.Println()
 	}
+}
+
+func (game *Game) AddConnection(userId string, connection *websocket.Conn) {
+	fmt.Printf("Add connection for user %v", userId)
+	game.wsHub.connections[userId] = connection
 }
