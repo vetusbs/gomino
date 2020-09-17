@@ -15,7 +15,7 @@ type Board struct {
 
 func (g *Board) PrintBoard() {
 	for _, card := range g.sink {
-		log.Debug("%v ", card.toString())
+		log.Debugf("%v ", card.toString())
 	}
 
 	log.Debugf("\nBOARD\n")

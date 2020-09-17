@@ -273,6 +273,6 @@ func (game *Game) PrintGameState() {
 }
 
 func (game *Game) AddConnection(userId string, connection *websocket.Conn) {
-	log.Debug("Add connection for user %v", userId)
+	log.Debugf(fmt.Sprintf("Add connection for user %v", userId))
 	game.wsHub.AddConnection(userId, connection)
 }
